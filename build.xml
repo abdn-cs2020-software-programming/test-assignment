@@ -1,0 +1,79 @@
+<project name="ant-sample" basedir="." default="build">
+
+    <!-- properties -->
+    <property name="src.dir"     value="src/main/java"/>
+    <property name="test.dir"     value="src/test/java"/>
+    <property name="build.dir"   value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="jar.dir"     value="${build.dir}/jar"/>
+    <property name="doc.dir"     value="doc"/>
+    <property name="report.dir" location="report" />
+
+    <path id="classpath.test">
+        <pathelement location="lib/junit-platform-console-standalone-1.10.2.jar"/>
+        <!-- <pathelement location="lib/junit-4.12.jar"/> -->
+        <!-- <pathelement location="lib/hamcrest-core-1.3.jar"/> -->
+        <pathelement location="${build.dir}"/>
+    </path>
+
+    <!-- targets -->
+    <target name="compile" description="compile project">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false"/>
+    </target>
+
+    <target name="test-compile" depends="compile">
+        <mkdir dir="${build.dir}"/>
+        <javac srcdir="${test.dir}" destdir="${build.dir}" includeantruntime="false">
+            <classpath refid="classpath.test"/>
+        </javac>
+    </target>
+
+    <target name="jar" depends="compile" description="generate the distribution jar">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="noughts.Play"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- Run jUnit -->
+	<target name="test" depends="test-compile">
+        <mkdir dir="${report.dir}"/>
+
+        <junit printsummary="yes" haltonfailure="no">
+        <classpath>
+          <path refid="classpath.test"/>
+          <pathelement location="${build.dir}"/>
+        </classpath>
+        <formatter type="xml" />
+        <batchtest fork="yes" todir="${report.dir}">
+            <fileset dir="${test.dir}">
+                <include name="**/*Test*.java" />
+            </fileset>
+        </batchtest>
+            
+        </junit>
+	</target>
+
+    <target name="run" depends="jar" description="run application">
+        <java jar="${jar.dir}/${ant.project.name}.jar" fork="true"/>
+    </target>
+
+    <target name="build" depends="jar" description="build application"/>
+
+    <target name="doc" description="generate documentation">
+        <mkdir dir="${doc.dir}" />
+        <javadoc destdir="${doc.dir}" sourcepath="${src.dir}"/>
+    </target>
+
+    <target name="clean" description="clean up build files">
+        <delete dir="${build.dir}"/>
+        <delete dir="${doc.dir}" />
+        <delete dir="${report.dir}" />
+    </target>
+
+    <target name="rebuild" depends="clean,build" description="rebuild application"/>
+
+</project>
